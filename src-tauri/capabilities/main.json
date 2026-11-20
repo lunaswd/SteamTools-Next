@@ -7,7 +7,6 @@
   ],
   "permissions": [
     "core:default",
-    "deep-link:allow-get-current",
     "dialog:allow-open",
     "dialog:allow-save",
     "allow-scan-steam-command",

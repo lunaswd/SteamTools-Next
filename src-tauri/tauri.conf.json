@@ -33,12 +33,5 @@
     ],
     "shortDescription": "Steam Lua library and OpenSteamTool manager",
     "category": "Utility"
-  },
-  "plugins": {
-    "deep-link": {
-      "desktop": {
-        "schemes": ["steamtoolsnext"]
-      }
-    }
   }
 }

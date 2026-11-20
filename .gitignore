@@ -8,6 +8,7 @@ references/
 cache/
 __pycache__/
 .playwright-cli/
+**/.millennium/
 release-assets/
 .release-stage/
 src-tauri/gen/

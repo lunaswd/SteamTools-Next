@@ -34,7 +34,7 @@ Source pushes trigger the Windows build-and-release workflow. Each release binds
 - Tool: https://github.com/lunaswd/SteamTools-Next
 - Kernel: https://github.com/lunaswd/steamtools-next-kernel
 
-Releases contain a GUI ZIP with the program, usage information, licenses and checksums, plus a separate optional Millennium theme ZIP for the Steam store-page import button. Kernel DLLs and user data are not bundled in the GUI ZIP. See `docs/STEAM_STORE_BUTTON.md` and `scripts/package_release.py --help` for installation and source-bound packaging details.
+Releases contain a GUI ZIP with the program, usage information, licenses and checksums. Kernel DLLs and user data are not bundled in that ZIP. See `scripts/package_release.py --help` for the source-bound packaging interface.
 
 ## Publication privacy
 

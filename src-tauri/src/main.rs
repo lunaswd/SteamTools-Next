@@ -16,8 +16,6 @@ use steam_tools_core::{
     ManagedWrite, ManifestBatchResult, ManifestFetchMode, ManifestLogCursor, RemoteImportResult,
     RemoteRepositoryClient, RemoteRepositoryConfig, ReqwestManifestTransport, SteamSnapshot,
 };
-use tauri::Manager;
-use tauri_plugin_deep_link::DeepLinkExt;
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -1217,19 +1215,7 @@ fn main() {
         std::process::exit(if result.is_ok() { 0 } else { 2 });
     }
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.show();
-                let _ = window.set_focus();
-            }
-        }))
-        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
-        .setup(|app| {
-            #[cfg(target_os = "windows")]
-            app.deep_link().register_all()?;
-            Ok(())
-        })
         .invoke_handler(tauri::generate_handler![
             scan_steam_command,
             steam_account_state_command,
