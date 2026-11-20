@@ -24,6 +24,54 @@ function el<T extends Element=HTMLElement>(s:string){const e=document.querySelec
 beforeEach(async()=>{vi.resetModules();Object.values(api).forEach(m=>m.mockReset());document.body.innerHTML='<div id="app"></div>';history.replaceState(null,'','#kernel');Object.defineProperty(window,'matchMedia',{configurable:true,value:()=>({matches:true,addEventListener:vi.fn()})});Object.defineProperty(window,'confirm',{configurable:true,value:vi.fn(()=>true)});HTMLElement.prototype.scrollTo=vi.fn();HTMLElement.prototype.scrollIntoView=vi.fn();localStorage.removeItem('stn-achievement-confirmed-v1');api.getCurrentSteamSession.mockResolvedValue({connected:false,source:'steamClient',accountLabel:'',accountFingerprint:'',steamPath:STEAM,games:[],capabilities:{},warnings:[],error:'Steam is not running'});api.loadGameCover.mockResolvedValue(null);api.listAchievements.mockResolvedValue(structuredClone(achievements));api.applyAchievementChanges.mockImplementation(async(_path,appId,_locale,changes)=>({appId,confirmed:true,results:changes.map((change:{id:string;unlock:boolean})=>({...change,success:true,error:null})),catalog:{...structuredClone(achievements),appId,achievements:achievements.achievements.map(item=>({...item,unlocked:changes.find((change:{id:string})=>change.id===item.id)?.unlock??item.unlocked}))}}));api.getEnvironment.mockResolvedValue({locale:'en',version:'0.2.0',defaultKernelPath:KERNEL,defaultKernelArtifactPath:ARTIFACT,desktop:true});api.loadSettings.mockResolvedValue(structuredClone(settings));api.scanSteam.mockResolvedValue(structuredClone(snapshot));api.inspectKernel.mockResolvedValue({path:KERNEL,kind:'source',version:'1',files:[],config:null,diagnostics:[],luaFiles:[]});api.detectInstalledKernel.mockResolvedValue(null);api.detectKernelInstallation.mockResolvedValue(structuredClone(installation));api.scanLuaLibrary.mockResolvedValue(structuredClone(library));api.loadCatalogRankings.mockResolvedValue(structuredClone(rankings));api.chooseFiles.mockResolvedValue([]);api.saveSettings.mockResolvedValue(undefined);api.planKernelInstall.mockResolvedValue({release:releaseArtifact,plan:operationReceipt.plan});api.installKernel.mockResolvedValue({release:releaseArtifact,receipt:operationReceipt});api.switchKernelInjection.mockResolvedValue(operationReceipt);api.setKernelEnabled.mockResolvedValue(operationReceipt);api.uninstallKernel.mockResolvedValue(operationReceipt);api.searchCatalog.mockResolvedValue(rankings.popular);api.catalogAdd.mockResolvedValue(catalogReceipt);api.remoteLibraryImport.mockResolvedValue({appId:42,imported:[],skipped:[],archiveBytes:1,luaFiles:1,attempts:1,steps:['remote']});api.refreshKeyCache.mockResolvedValue({cacheDir:'cache',depotKeysPath:'a',appTokensPath:'b',depotKeysBytes:1,appTokensBytes:2,updatedAt:1});api.pollManifest.mockResolvedValue(manifest);api.exportReport.mockResolvedValue('report.json');await import('./main');await settled()});
 
 describe('management UI',()=>{
+ it('distinguishes no matches from an empty library and clears the active filters',async()=>{
+   click('[data-page="library"]');
+   const filter=el<HTMLSelectElement>('#library-filter');
+   filter.value='disabled';filter.dispatchEvent(new Event('change',{bubbles:true}));
+   input('#library-query','missing');
+   expect(el('.library-empty h3').textContent).toBe('No matching applications');
+   click('#library-reset');
+   expect(document.activeElement).toBe(el('#library-query'));
+   expect(el<HTMLInputElement>('#library-query').value).toBe('');
+   expect(el<HTMLSelectElement>('#library-filter').value).toBe('all');
+   expect(document.querySelectorAll('.lua-game-card')).toHaveLength(1);
+   api.scanLuaLibrary.mockResolvedValueOnce({...library,entries:[]});
+   click('[data-action="refresh"]');await settled();
+   expect(el('.library-empty h3').textContent).toBe('No Lua entries yet');
+   expect(document.querySelector('#library-reset')).toBeNull();
+ });
+ it('preserves focus and exposes the selected library view to assistive technology',()=>{
+   click('[data-page="library"]');
+   const list=el<HTMLButtonElement>('[data-library-view="list"]');
+   list.focus();list.click();
+   expect(document.activeElement).toBe(el('[data-library-view="list"][aria-pressed="true"]'));
+   expect(el('[data-library-view="cards"]').getAttribute('aria-pressed')).toBe('false');
+   expect(el('.lua-list-cover .cover-fallback').getAttribute('aria-hidden')).toBe('true');
+ });
+ it('marks only the current navigation item and shows the scanned Steam process state',async()=>{
+   expect(el('.sidebar nav [aria-current="page"]').getAttribute('data-page')).toBe('kernel');
+   expect(el('.topbar-steam').textContent).toContain('Not running');
+   click('[data-page="settings"]');
+   expect(document.querySelectorAll('.sidebar nav [aria-current="page"]')).toHaveLength(1);
+   expect(el('.sidebar nav [aria-current="page"]').getAttribute('data-page')).toBe('settings');
+   api.scanSteam.mockResolvedValueOnce({...snapshot,steam:{...snapshot.steam!,running:true}});
+   click('[data-action="refresh"]');await settled();
+   expect(el('.topbar-steam.is-running').textContent).toContain('Running');
+ });
+ it('restores checkbox focus without calling the text selection API',async()=>{
+   click('[data-page="settings"]');
+   const setSelection=vi.spyOn(HTMLInputElement.prototype,'setSelectionRange');
+   try {
+     const checkbox=el<HTMLInputElement>('#compactMode');
+     checkbox.focus();
+     checkbox.click();
+     expect(document.activeElement).toBe(el('#compactMode'));
+     expect(setSelection).not.toHaveBeenCalled();
+     click('[data-action="save-settings"]');await settled();
+     expect(document.documentElement.dataset.density).toBe('compact');
+     expect(api.saveSettings).toHaveBeenLastCalledWith(expect.objectContaining({compactMode:true}));
+   } finally {setSelection.mockRestore()}
+ });
  it('keeps only installed status and remote management on the kernel page',()=>{
    expect(document.querySelector('.installed-kernel-panel')).not.toBeNull();
    expect(document.querySelector('.management-panel')).not.toBeNull();
@@ -90,6 +138,7 @@ describe('management UI',()=>{
 describe('fixed kernel install and uninstall',()=>{
  it('has exactly the two management actions and no editable repository or entry',()=>{
    const panel=el('.management-panel');
+   expect(panel.querySelector('.kernel-source-row')?.textContent).toContain(new URL(SOURCE).pathname.slice(1));
    expect([...panel.querySelectorAll<HTMLButtonElement>('.management-actions button')].map(button=>button.dataset.action)).toEqual(['kernel-install','kernel-uninstall']);
    expect(el<HTMLButtonElement>('[data-action="kernel-uninstall"]').disabled).toBe(true);
    for(const selector of ['#kernel-release-source','input[name="kernel-method"]','[data-action="kernel-plan"]','[data-action="kernel-disable"]','[data-action="kernel-enable"]','[data-action="kernel-switch"]','.plan-preview','.receipt-summary'])expect(document.querySelector(selector)).toBeNull();

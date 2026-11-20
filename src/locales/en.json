@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "Sign in to Steam and verify the current account again.",
   "authorization.invalidFile": "Ticket file metadata or format is invalid.",
   "authorization.contextChanged": "The account, Steam directory, AppID or ticket file changed. Verify and confirm again.",
-  "authorization.identityMismatch": "The ticket account or AppID does not match the verified current account/game. Choose the matching file or verify the correct AppID."
+  "authorization.identityMismatch": "The ticket account or AppID does not match the verified current account/game. Choose the matching file or verify the correct AppID.",
+  "updates.checkTool": "Check tool updates",
+  "updates.checkKernel": "Check kernel updates",
+  "updates.status.undetermined": "Needs Steam path"
 }

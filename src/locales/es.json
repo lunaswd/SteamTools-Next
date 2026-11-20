@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "Inicia sesión en Steam y verifica otra vez la cuenta.",
   "authorization.invalidFile": "Formato o metadatos de tickets no válidos.",
   "authorization.contextChanged": "Cambió la cuenta, el directorio de Steam, AppID o archivo. Verifica y confirma de nuevo.",
-  "authorization.identityMismatch": "La cuenta o AppID del ticket no coincide con lo verificado. Elige el archivo correspondiente o verifica el AppID correcto."
+  "authorization.identityMismatch": "La cuenta o AppID del ticket no coincide con lo verificado. Elige el archivo correspondiente o verifica el AppID correcto.",
+  "updates.checkTool": "Buscar actualizaciones de la herramienta",
+  "updates.checkKernel": "Buscar actualizaciones del kernel",
+  "updates.status.undetermined": "Se necesita la ruta de Steam"
 }

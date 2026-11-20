@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "请登录 Steam 后重新核验当前账号。",
   "authorization.invalidFile": "票据文件格式或元数据无效。",
   "authorization.contextChanged": "账号、Steam 目录、AppID 或票据文件发生变化，请重新核验并确认。",
-  "authorization.identityMismatch": "票据账号或 AppID 与已核验的当前账号/游戏不一致，请选择匹配的文件或重新核验正确的 AppID。"
+  "authorization.identityMismatch": "票据账号或 AppID 与已核验的当前账号/游戏不一致，请选择匹配的文件或重新核验正确的 AppID。",
+  "updates.checkTool": "检查工具更新",
+  "updates.checkKernel": "检查内核更新",
+  "updates.status.undetermined": "需要 Steam 路径"
 }

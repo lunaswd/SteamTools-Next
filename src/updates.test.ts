@@ -14,7 +14,7 @@ let beforeApply=vi.fn<()=>void>(),applyFailed=vi.fn<()=>void>();
 let appBusy=false;
 let root:HTMLElement;
 function setup(){
-  api={check:vi.fn(async()=>current()),install:vi.fn(async()=>({prepared:true,restarting:true}))};
+  api={check:vi.fn(async(_path,_scope)=>current()),install:vi.fn(async()=>({prepared:true,restarting:true}))};
   beforeApply=vi.fn<()=>void>();applyFailed=vi.fn<()=>void>();appBusy=false;
   document.body.innerHTML='<div id="fixture"></div>';root=document.getElementById('fixture')!;
   const render=()=>{root.innerHTML=controller.menuButton()+controller.markup();controller.bind(root)};
@@ -29,9 +29,19 @@ it('checks release metadata in the background without opening a current-version 
   const wait=deferred<UpdatesState>();vi.mocked(api.check).mockReturnValueOnce(wait.promise);
   const promise=controller.check(true);
   expect(controller.checking).toBe(true);expect(controller.open).toBe(false);expect(controller.phase).toBe('idle');
-  expect(api.check).toHaveBeenCalledWith('C:\\Fixture\\Steam');expect(api.install).not.toHaveBeenCalled();
+  expect(api.check).toHaveBeenCalledWith('C:\\Fixture\\Steam','both');expect(api.install).not.toHaveBeenCalled();
   wait.resolve(current());await promise;
   expect(controller.checking).toBe(false);expect(controller.open).toBe(false);
+});
+it('checks the tool and kernel through separate user-facing actions',async()=>{
+  vi.mocked(api.check).mockResolvedValue(current());
+  await controller.openAndCheck();
+  expect(api.check).toHaveBeenLastCalledWith('C:\\Fixture\\Steam','tool');
+  controller.close();
+  root.innerHTML=controller.kernelPanel();controller.bind(root);
+  click('#updates-kernel');
+  await new Promise(resolve=>setTimeout(resolve,0));
+  expect(api.check).toHaveBeenLastCalledWith('C:\\Fixture\\Steam','kernel');
 });
 it('shows one available-update notification at startup and keeps kernel management as an instruction, not another action',async()=>{
   vi.mocked(api.check).mockResolvedValue(available());await controller.check(true);

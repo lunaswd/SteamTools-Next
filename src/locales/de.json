@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "Bei Steam anmelden und das Konto erneut prüfen.",
   "authorization.invalidFile": "Ticketformat oder Metadaten sind ungültig.",
   "authorization.contextChanged": "Konto, Steam-Ordner, AppID oder Datei geändert. Erneut prüfen und bestätigen.",
-  "authorization.identityMismatch": "Ticketkonto oder AppID stimmt nicht mit dem geprüften Konto/Spiel überein. Passende Datei wählen oder die richtige AppID prüfen."
+  "authorization.identityMismatch": "Ticketkonto oder AppID stimmt nicht mit dem geprüften Konto/Spiel überein. Passende Datei wählen oder die richtige AppID prüfen.",
+  "updates.checkTool": "Tool-Updates prüfen",
+  "updates.checkKernel": "Kernel-Updates prüfen",
+  "updates.status.undetermined": "Steam-Pfad erforderlich"
 }

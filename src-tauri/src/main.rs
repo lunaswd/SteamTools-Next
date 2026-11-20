@@ -340,40 +340,37 @@ impl UpdateCheck {
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct UpdatesState {
-    tool: UpdateCheck,
-    kernel: UpdateCheck,
+    tool: Option<UpdateCheck>,
+    kernel: Option<UpdateCheck>,
     checked_at: u64,
 }
 
-#[tauri::command]
-async fn check_updates_command(steam_path: Option<String>) -> Result<UpdatesState, CommandError> {
-    background("updates.failed", move || {
-        // Independent provider failures do not hide a successful other check.
-        let tool_task =
-            std::thread::spawn(|| steam_tools_core::check_tool_update(env!("CARGO_PKG_VERSION")));
-        let kernel_result = steam_tools_core::check_kernel_update(
-            steam_path
-                .as_deref()
-                .filter(|path| !path.trim().is_empty())
-                .map(Path::new),
-        );
-        let mut tool = match tool_task.join() {
-            Ok(Ok(info)) => UpdateCheck {
-                status: if info.update_available {
-                    "available"
-                } else {
-                    "current"
-                },
-                current_version: Some(info.current_version),
-                latest_version: Some(info.latest_version),
-                release_tag: Some(info.release_tag),
-                current_sha256: None,
-                latest_sha256: None,
-                error: None,
+#[derive(Clone, Copy, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum UpdateScope {
+    Tool,
+    Kernel,
+    Both,
+}
+
+fn check_tool_release(startup: bool) -> UpdateCheck {
+    let mut tool = match steam_tools_core::check_tool_update(env!("CARGO_PKG_VERSION")) {
+        Ok(info) => UpdateCheck {
+            status: if info.update_available {
+                "available"
+            } else {
+                "current"
             },
-            Ok(Err(error)) => UpdateCheck::failed(error),
-            Err(_) => UpdateCheck::failed("Tool update check worker did not finish"),
-        };
+            current_version: Some(info.current_version),
+            latest_version: Some(info.latest_version),
+            release_tag: Some(info.release_tag),
+            current_sha256: None,
+            latest_sha256: None,
+            error: None,
+        },
+        Err(error) => UpdateCheck::failed(error),
+    };
+    if startup && tool.error.is_none() {
         if let Ok(Some(result)) = steam_tools_core::consume_last_tool_update_result() {
             if !result.success {
                 tool.error = Some(CommandError::operation(
@@ -384,23 +381,55 @@ async fn check_updates_command(steam_path: Option<String>) -> Result<UpdatesStat
                 ));
             }
         }
-        let kernel = match kernel_result {
-            Ok(info) => UpdateCheck {
-                status: if !info.installed {
-                    "notInstalled"
-                } else if info.update_available {
-                    "available"
-                } else {
-                    "current"
-                },
-                current_version: info.current_version,
-                latest_version: Some(info.latest_version),
-                release_tag: Some(info.release_tag),
-                current_sha256: info.current_sha256,
-                latest_sha256: Some(info.latest_sha256),
-                error: None,
+    }
+    tool
+}
+
+fn check_kernel_release(steam_path: Option<&str>) -> UpdateCheck {
+    let root = steam_path
+        .filter(|path| !path.trim().is_empty())
+        .map(Path::new);
+    match steam_tools_core::check_kernel_update(root) {
+        Ok(info) => UpdateCheck {
+            status: if root.is_none() {
+                "undetermined"
+            } else if !info.installed {
+                "notInstalled"
+            } else if info.current_version.is_none() && info.current_sha256.is_none() {
+                "undetermined"
+            } else if info.update_available {
+                "available"
+            } else {
+                "current"
             },
-            Err(error) => UpdateCheck::failed(error),
+            current_version: info.current_version,
+            latest_version: Some(info.latest_version),
+            release_tag: Some(info.release_tag),
+            current_sha256: info.current_sha256,
+            latest_sha256: Some(info.latest_sha256),
+            error: None,
+        },
+        Err(error) => UpdateCheck::failed(error),
+    }
+}
+
+#[tauri::command]
+async fn check_updates_command(
+    steam_path: Option<String>,
+    scope: Option<UpdateScope>,
+) -> Result<UpdatesState, CommandError> {
+    background("updates.failed", move || {
+        let (tool, kernel) = match scope.unwrap_or(UpdateScope::Both) {
+            UpdateScope::Tool => (Some(check_tool_release(false)), None),
+            UpdateScope::Kernel => (None, Some(check_kernel_release(steam_path.as_deref()))),
+            UpdateScope::Both => {
+                let tool_task = std::thread::spawn(|| check_tool_release(true));
+                let kernel = check_kernel_release(steam_path.as_deref());
+                let tool = tool_task.join().unwrap_or_else(|_| {
+                    UpdateCheck::failed("Tool update check worker did not finish")
+                });
+                (Some(tool), Some(kernel))
+            }
         };
         let checked_at = SystemTime::now()
             .duration_since(UNIX_EPOCH)

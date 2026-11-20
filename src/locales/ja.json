@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "Steam にログインしてアカウントを再確認してください。",
   "authorization.invalidFile": "チケット形式またはメタデータが無効です。",
   "authorization.contextChanged": "アカウント、Steam フォルダー、AppID またはファイルが変更されました。再確認してください。",
-  "authorization.identityMismatch": "チケットのアカウントまたは AppID が確認済みの対象と一致しません。対応するファイルを選ぶか AppID を再確認してください。"
+  "authorization.identityMismatch": "チケットのアカウントまたは AppID が確認済みの対象と一致しません。対応するファイルを選ぶか AppID を再確認してください。",
+  "updates.checkTool": "ツールの更新を確認",
+  "updates.checkKernel": "カーネルの更新を確認",
+  "updates.status.undetermined": "Steam パスが必要です"
 }

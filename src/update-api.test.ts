@@ -6,7 +6,11 @@ import { checkUpdates, installToolUpdate } from './update-api';
 beforeEach(()=>{mocks.invoke.mockReset();mocks.desktop=true});
 it('checks only the fixed native update command, without passing library, account or repository information',async()=>{
   mocks.invoke.mockResolvedValue({});await checkUpdates('C:\\Fixture\\Steam');
-  expect(mocks.invoke).toHaveBeenCalledWith('check_updates_command',{steamPath:'C:\\Fixture\\Steam'});
+  expect(mocks.invoke).toHaveBeenCalledWith('check_updates_command',{scope:'both',steamPath:'C:\\Fixture\\Steam'});
+});
+it('passes a tool-only scope without a Steam path',async()=>{
+  mocks.invoke.mockResolvedValue({});await checkUpdates('C:\\Fixture\\Steam','tool');
+  expect(mocks.invoke).toHaveBeenCalledWith('check_updates_command',{scope:'tool',steamPath:null});
 });
 it('applies a user-selected version without accepting arbitrary paths or URLs',async()=>{
   mocks.invoke.mockResolvedValue({prepared:true,restarting:true});await installToolUpdate('0.3.1');

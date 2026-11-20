@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "Steam에 로그인한 뒤 현재 계정을 다시 확인하세요.",
   "authorization.invalidFile": "티켓 파일 형식이나 메타데이터가 올바르지 않습니다.",
   "authorization.contextChanged": "계정, Steam 폴더, AppID 또는 파일이 변경되었습니다. 다시 확인하세요.",
-  "authorization.identityMismatch": "티켓 계정 또는 AppID가 확인한 현재 계정/게임과 다릅니다. 일치하는 파일을 선택하거나 올바른 AppID를 다시 확인하세요."
+  "authorization.identityMismatch": "티켓 계정 또는 AppID가 확인한 현재 계정/게임과 다릅니다. 일치하는 파일을 선택하거나 올바른 AppID를 다시 확인하세요.",
+  "updates.checkTool": "도구 업데이트 확인",
+  "updates.checkKernel": "커널 업데이트 확인",
+  "updates.status.undetermined": "Steam 경로 필요"
 }

@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "Войдите в Steam и проверьте аккаунт снова.",
   "authorization.invalidFile": "Неверный формат или метаданные билета.",
   "authorization.contextChanged": "Аккаунт, каталог Steam, AppID или файл изменились. Проверьте и подтвердите снова.",
-  "authorization.identityMismatch": "Аккаунт или AppID билета не совпадает с проверенным аккаунтом/игрой. Выберите подходящий файл или проверьте правильный AppID."
+  "authorization.identityMismatch": "Аккаунт или AppID билета не совпадает с проверенным аккаунтом/игрой. Выберите подходящий файл или проверьте правильный AppID.",
+  "updates.checkTool": "Проверить обновления инструмента",
+  "updates.checkKernel": "Проверить обновления ядра",
+  "updates.status.undetermined": "Требуется путь к Steam"
 }

@@ -768,5 +768,8 @@
   "authorization.sessionUnavailable": "請登入 Steam 後重新核驗目前帳號。",
   "authorization.invalidFile": "票據檔案格式或中繼資料無效。",
   "authorization.contextChanged": "帳號、Steam 目錄、AppID 或票據檔案已變更，請重新核驗並確認。",
-  "authorization.identityMismatch": "票據帳號或 AppID 與已核驗的目前帳號/遊戲不一致，請選擇相符檔案或重新核驗正確的 AppID。"
+  "authorization.identityMismatch": "票據帳號或 AppID 與已核驗的目前帳號/遊戲不一致，請選擇相符檔案或重新核驗正確的 AppID。",
+  "updates.checkTool": "檢查工具更新",
+  "updates.checkKernel": "檢查核心更新",
+  "updates.status.undetermined": "需要 Steam 路徑"
 }
