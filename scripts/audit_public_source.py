@@ -17,7 +17,7 @@ import sys
 ROOT_FILES = {".gitignore", ".gitattributes", "Cargo.toml", "Cargo.lock", "package.json",
               "package-lock.json", "index.html", "tsconfig.json", "vite.config.ts", "LICENSE",
               "README.md", "RELEASE_README.txt", "RELEASE_BUILD.json"}
-ROOT_DIRS = {".github", "crates", "public", "scripts", "src", "src-tauri", "docs"}
+ROOT_DIRS = {".github", "addons", "crates", "public", "scripts", "src", "src-tauri", "docs"}
 BLOCKED_PARTS = {".git", "node_modules", "target", "dist", "output", "validation", "references",
                  "cache", "__pycache__", ".playwright-cli", "release-assets", ".release-stage", "gen"}
 BLOCKED_SUFFIXES = {".log", ".bak", ".tmp", ".pdb", ".obj", ".dll", ".exe", ".pyc",
@@ -69,7 +69,12 @@ def allowed_path(relative: str) -> bool:
     if parts[0] == "public":
         return relative == "public/icon.svg"
     if parts[0] == "docs":
-        return relative == "docs/THIRD-PARTY-NOTICES.md"
+        return relative in {"docs/THIRD-PARTY-NOTICES.md", "docs/STEAM_STORE_BUTTON.md"}
+    if parts[0] == "addons":
+        prefix = "addons/millennium/steamtools-next-store-button/"
+        return relative.startswith(prefix) and path.name in {
+            "skin.json", "steamtools-next-store-button.js", "steamtools-next-store-button.css", "README.md"
+        }
     return False
 
 

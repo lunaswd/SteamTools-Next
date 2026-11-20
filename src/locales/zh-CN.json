@@ -449,6 +449,8 @@
   "catalog.emptyDescription": "输入名称或 AppID。离线时仍可导入本地文件或生成基础 AppID Lua。",
   "catalog.log": "操作日志",
   "catalog.addComplete": "已入库 {name}。",
+  "catalog.storeImportConfirm": "将 AppID {appId} 按当前设置写入 SteamTools Next 本地 Lua 配置？这只更改本地工具配置，不会为 Steam 账号添加许可证。",
+  "catalog.storeAlreadyPresent": "AppID {appId} 已在 Lua 库中，未覆盖现有条目。",
   "catalog.keysUpdated": "密钥缓存已更新（{size}）。",
   "manifest.codeDirect": "Code 直下 + Steam CDN",
   "manifest.codeDirectDescription": "依次尝试多个请求码来源，再从 Steam CDN 下载。",

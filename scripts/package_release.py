@@ -25,7 +25,10 @@ FILES = ("SteamTools Next.exe", "LICENSE.txt", "使用说明.txt", "THIRD-PARTY-
 ROOT_FILES = {".gitignore", ".gitattributes", "Cargo.toml", "Cargo.lock", "package.json",
               "package-lock.json", "index.html", "tsconfig.json", "vite.config.ts", "LICENSE",
               "README.md", "RELEASE_README.txt", "RELEASE_BUILD.json"}
-ROOT_DIRS = {".github", "crates", "public", "scripts", "src", "src-tauri", "docs"}
+ROOT_DIRS = {".github", "addons", "crates", "public", "scripts", "src", "src-tauri", "docs"}
+STORE_ADDON_PREFIX = "addons/millennium/steamtools-next-store-button"
+STORE_ADDON_FILES = ("skin.json", "steamtools-next-store-button.js",
+                     "steamtools-next-store-button.css", "README.md")
 BLOCKED_PARTS = {".git", "node_modules", "target", "dist", "output", "validation", "references",
                  "cache", "__pycache__", ".playwright-cli", "release-assets", ".release-stage"}
 BLOCKED_SUFFIXES = {".log", ".bak", ".tmp", ".pdb", ".obj", ".dll", ".exe", ".pyc"}
@@ -112,6 +115,20 @@ def source_entries(root: Path, commit: str) -> dict[str, bytes]:
     return result
 
 
+def store_addon_entries(sources: dict[str, bytes]) -> tuple[str, dict[str, bytes]]:
+    expected = {f"{STORE_ADDON_PREFIX}/{name}" for name in STORE_ADDON_FILES}
+    available = {name for name in sources if name.startswith(STORE_ADDON_PREFIX + "/")}
+    if available != expected:
+        raise ValueError("Steam store button source files are incomplete or unexpected")
+    skin = json.loads(sources[f"{STORE_ADDON_PREFIX}/skin.json"])
+    version = skin.get("version")
+    if not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise ValueError("Steam store button version is invalid")
+    entries = {f"steamtools-next-store-button/{name}": sources[f"{STORE_ADDON_PREFIX}/{name}"]
+               for name in STORE_ADDON_FILES}
+    return version, entries
+
+
 def dependency_material(root: Path, build: Path, staging: Path) -> tuple[bytes, dict[str, bytes]]:
     cargo_home = Path(os.environ.get("CARGO_HOME", str(Path.home() / ".cargo")))
     manifest = collect_licenses.collect(root, cargo_home, staging, build_inputs=build)
@@ -170,11 +187,17 @@ def package(root: Path, output: Path, release_tag: str, build: Path, cargo_licen
         binary_path = output / f"steamtools-next-{version}-windows-x64.zip"
         write_zip(binary_path, entries)
         sources = source_entries(root, commit)
+        addon_version, addon_entries = store_addon_entries(sources)
+        addon_path = output / f"steamtools-next-store-button-{addon_version}.zip"
+        write_zip(addon_path, addon_entries)
         sources.update(dependencies)
         sources["SOURCE_INFO.json"] = json_bytes({"schemaVersion": 1, "version": version,
                                                  "releaseTag": release_tag, "sourceCommit": commit})
         source_path = output / f"steamtools-next-{version}-source.zip"
         write_zip(source_path, sources)
+    addon_manifest_path = output / "store-button-addon.json"
+    addon_manifest_path.write_bytes(json_bytes({"schemaVersion": 1,
+                                                "asset": record(addon_path.name, addon_path.read_bytes())}))
     manifest = {"schemaVersion": 1, "version": version, "releaseTag": release_tag,
                 "sourceCommit": commit, "platform": "windows-x64",
                 "asset": record(binary_path.name, binary_path.read_bytes()),
@@ -182,7 +205,8 @@ def package(root: Path, output: Path, release_tag: str, build: Path, cargo_licen
     manifest_path = output / "tool-release.json"
     manifest_path.write_bytes(json_bytes(manifest))
     (output / "release-SHA256SUMS.txt").write_text(
-        "".join(f"{digest(path.read_bytes())}  {path.name}\n" for path in (binary_path, source_path, manifest_path)),
+        "".join(f"{digest(path.read_bytes())}  {path.name}\n"
+                for path in (binary_path, source_path, addon_path, manifest_path, addon_manifest_path)),
         encoding="utf-8")
     return manifest
 

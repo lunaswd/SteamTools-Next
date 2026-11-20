@@ -20,6 +20,9 @@ The program checks public GitHub release metadata for tool and kernel updates.
 - A confirmed tool update verifies the download, exits the old program, replaces the package files and automatically starts the new version. Replacement failures restore the prior files.
 - Failed checks or downloads keep the current version usable; they do not silently select an unrelated source.
 
+Steam Store button
+The optional Millennium theme is distributed as a separate steamtools-next-store-button-<version>.zip release asset. Install it only if Millennium is installed for Steam. It adds a button below Steam's purchase/play action and uses the current local Lua import settings after confirmation; it does not grant a Steam account license. See docs/STEAM_STORE_BUTTON.md in the corresponding-source ZIP for setup details.
+
 Source and licenses
 Tool: https://github.com/lunaswd/SteamTools-Next
 Kernel and complete corresponding kernel source: https://github.com/lunaswd/steamtools-next-kernel

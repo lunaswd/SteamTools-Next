@@ -449,6 +449,8 @@
   "catalog.emptyDescription": "Use a name or AppID. When offline, local file import and basic AppID Lua remain available.",
   "catalog.log": "Operation log",
   "catalog.addComplete": "Imported {name}.",
+  "catalog.storeImportConfirm": "要依目前設定將 AppID {appId} 寫入 SteamTools Next 本機 Lua 設定嗎？這只會變更本機工具設定，不會替 Steam 帳號新增授權。",
+  "catalog.storeAlreadyPresent": "AppID {appId} 已存在於 Lua 資料庫，未覆蓋現有項目。",
   "catalog.keysUpdated": "Key cache updated ({size}).",
   "manifest.codeDirect": "Code + Steam CDN",
   "manifest.codeDirectDescription": "Try multiple request-code sources, then download from Steam CDN.",

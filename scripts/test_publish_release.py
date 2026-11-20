@@ -73,18 +73,38 @@ class PublishTests(unittest.TestCase):
             self.assertFalse(api.patched)
             self.assertTrue(api.release['draft'])
 
+    def test_tampered_store_button_asset_preserves_unpublished_draft(self):
+        with tempfile.TemporaryDirectory(prefix='publish-fixture-') as temporary:
+            directory, manifest, names = self.fixture(Path(temporary))
+            addon_manifest = json.loads((directory / 'store-button-addon.json').read_text())
+            (directory / addon_manifest['asset']['name']).write_bytes(b'tampered add-on')
+            api = FakeGitHub(manifest['sourceCommit'], manifest['releaseTag'], names)
+            with self.assertRaises(ValueError):
+                release.publish('fixture/tool', directory, 'tool', api)
+            self.assertFalse(api.patched)
+            self.assertTrue(api.release['draft'])
+
     @staticmethod
     def fixture(directory):
         version = '0.3.1'
         binary_name = f'steamtools-next-{version}-windows-x64.zip'
         data = b'fixture binary ZIP'
+        addon_name = 'steamtools-next-store-button-1.0.0.zip'
+        addon_data = b'fixture Steam store button ZIP'
         manifest = {'schemaVersion': 1, 'version': version, 'releaseTag': 'v' + version,
                     'sourceCommit': 'a' * 40, 'platform': 'windows-x64',
-                    'asset': {'name': binary_name, 'sizeBytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}}
-        names = {binary_name, f'steamtools-next-{version}-source.zip', 'tool-release.json', 'release-SHA256SUMS.txt'}
+                    'asset': {'name': binary_name, 'sizeBytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()},
+                    'files': []}
+        names = {binary_name, addon_name, f'steamtools-next-{version}-source.zip',
+                 'tool-release.json', 'store-button-addon.json', 'release-SHA256SUMS.txt'}
         (directory / binary_name).write_bytes(data)
+        (directory / addon_name).write_bytes(addon_data)
         (directory / f'steamtools-next-{version}-source.zip').write_bytes(b'fixture source ZIP')
         (directory / 'tool-release.json').write_text(json.dumps(manifest))
+        addon_manifest = {'schemaVersion': 1,
+                          'asset': {'name': addon_name, 'sizeBytes': len(addon_data),
+                                    'sha256': hashlib.sha256(addon_data).hexdigest()}}
+        (directory / 'store-button-addon.json').write_text(json.dumps(addon_manifest))
         (directory / 'release-SHA256SUMS.txt').write_text('fixture checksum list')
         return directory, manifest, names
 

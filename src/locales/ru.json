@@ -449,6 +449,8 @@
   "catalog.emptyDescription": "Use a name or AppID. When offline, local file import and basic AppID Lua remain available.",
   "catalog.log": "Operation log",
   "catalog.addComplete": "Imported {name}.",
+  "catalog.storeImportConfirm": "Добавить AppID {appId} в локальную конфигурацию Lua SteamTools Next с текущими настройками? Изменится только локальная конфигурация; лицензия аккаунту Steam не выдается.",
+  "catalog.storeAlreadyPresent": "AppID {appId} уже есть в библиотеке Lua. Существующая запись не перезаписана.",
   "catalog.keysUpdated": "Key cache updated ({size}).",
   "manifest.codeDirect": "Code + Steam CDN",
   "manifest.codeDirectDescription": "Try multiple request-code sources, then download from Steam CDN.",

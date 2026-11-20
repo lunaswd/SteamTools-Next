@@ -86,6 +86,25 @@ def publish(repository: str, directory: Path, kind: str, api: GitHub) -> dict:
              manifest_name, "release-SHA256SUMS.txt"}
     if manifest["asset"]["name"] != f"{prefix}-{version}-windows-x64.zip":
         raise ValueError("Release manifest asset name is invalid")
+    addon = None
+    if kind == "tool":
+        addon_manifest_name = "store-button-addon.json"
+        addon_manifest = json.loads((directory / addon_manifest_name).read_text(encoding="utf-8-sig"))
+        if not isinstance(addon_manifest, dict) or set(addon_manifest) != {"schemaVersion", "asset"} \
+                or addon_manifest["schemaVersion"] != 1:
+            raise ValueError("Steam store button add-on metadata is invalid")
+        addon = addon_manifest["asset"]
+        if not isinstance(addon, dict) or set(addon) != {"name", "sizeBytes", "sha256"}:
+            raise ValueError("Steam store button add-on metadata is invalid")
+        addon_name = addon["name"]
+        if (not isinstance(addon_name, str) or not re.fullmatch(
+                r"steamtools-next-store-button-\d+\.\d+\.\d+\.zip", addon_name)
+                or type(addon["sizeBytes"]) is not int or addon["sizeBytes"] < 0
+                or not isinstance(addon["sha256"], str)
+                or not re.fullmatch(r"[0-9a-f]{64}", addon["sha256"])):
+            raise ValueError("Steam store button add-on metadata is invalid")
+        names.add(addon_manifest_name)
+        names.add(addon_name)
     files = {}
     for name in names:
         path = directory / name
@@ -96,6 +115,10 @@ def publish(repository: str, directory: Path, kind: str, api: GitHub) -> dict:
     archive, checksum = files[manifest["asset"]["name"]]
     if manifest["asset"]["sizeBytes"] != len(archive) or manifest["asset"]["sha256"] != checksum:
         raise ValueError("Release binary ZIP no longer matches its manifest")
+    if addon:
+        addon_archive, addon_checksum = files[addon["name"]]
+        if addon.get("sizeBytes") != len(addon_archive) or addon.get("sha256") != addon_checksum:
+            raise ValueError("Steam store button ZIP no longer matches its manifest")
     # A tag points to the exact version-only commit, not the maintenance branch.
     tagged = api.request(f"repos/{repository}/commits/{urllib.parse.quote(tag, safe='')}")
     if tagged["sha"] != commit:
@@ -109,9 +132,9 @@ def publish(repository: str, directory: Path, kind: str, api: GitHub) -> dict:
             "tag_name": tag, "target_commitish": commit, "name": f"SteamTools Next {kind} {version}",
             "draft": True, "prerelease": False,
             "body": f"Automated Windows x64 {kind} release.\n\nSource commit: `{commit}`\n\n"
-                    "The manifest binds all installation files by SHA-256. The corresponding-source ZIP "
-                    "and third-party license material are included. Installation integrity and runtime "
-                    "compatibility remain separate checks."
+                    "The application manifest and separate store-button add-on manifest bind their ZIP assets by SHA-256. "
+                    "The corresponding-source ZIP and third-party license material are included. "
+                    "Installation integrity and runtime compatibility remain separate checks."
         })
     if not release["draft"]:
         if release.get("target_commitish") != commit or {item["name"] for item in release["assets"]} != names:
